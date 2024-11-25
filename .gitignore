@@ -1,0 +1,6 @@
+.venv
+processed
+indexes
+*.pyc
+*.pycache__
+.env
