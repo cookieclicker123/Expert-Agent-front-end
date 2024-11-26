@@ -4,3 +4,5 @@ indexes
 *.pyc
 *.pycache__
 .env
+.chainlit/config.toml
+.chainlit/translations

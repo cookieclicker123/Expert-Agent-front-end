@@ -9,7 +9,7 @@ load_dotenv()
 class ModelConfig:
     model_name: str = "llama3.2"
     temperature: float = 0.7
-    max_tokens: int = 3000
+    max_tokens: int = 8192
     provider: str = "ollama"
 
     groq_api_key: str = os.getenv("GROQ_API_KEY")
