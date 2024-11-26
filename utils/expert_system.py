@@ -32,11 +32,11 @@ class ExpertSystem:
         self.meta_agent.registry.register("finance", finance_agent)
         self.meta_agent.registry.register("web", web_agent)
         
-    def process_query(self, query: str) -> str:
+    async def process_query(self, query: str) -> str:
         """Process a query through the meta agent"""
         try:
             print("\nProcessing query...\n")
-            response = self.meta_agent.process(query)
+            response = await self.meta_agent.process(query)
             print("\n")
             return ""  # Return empty as streaming handles output
         except Exception as e:

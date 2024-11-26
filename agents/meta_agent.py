@@ -14,7 +14,7 @@ class MetaAgent(BaseAgent):
         self.synthesis_prompt = SYNTHESIS_PROMPT
         self.workpad = Workpad()
         
-    def process(self, query: str) -> str:
+    async def process(self, query: str) -> str:
         """Process query through appropriate agents"""
         try:
             print("\nAnalyzing workflow...")
@@ -39,14 +39,23 @@ class MetaAgent(BaseAgent):
             # Add separator
             print("\n" + "-" * 100)
             
-            # Generate final response - stream only, don't return
+            # Mark synthesis phase
+            if self.callbacks and hasattr(self.callbacks[0], 'on_llm_start'):
+                await self.callbacks[0].on_llm_start(agent_name="meta")
+            
+            # Generate final response
             synthesis_prompt = self.synthesis_prompt.format(
                 query=query,
                 agent_responses=json.dumps(content, indent=2)
             )
             
-            self._invoke_llm(synthesis_prompt)
-            return ""  # Return empty string since we're streaming
+            response = self._invoke_llm(synthesis_prompt)
+            
+            # Mark synthesis end
+            if self.callbacks and hasattr(self.callbacks[0], 'on_llm_end'):
+                await self.callbacks[0].on_llm_end()
+                
+            return response
             
         except Exception as e:
             print(f"Error in workflow: {str(e)}")

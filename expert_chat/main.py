@@ -51,8 +51,8 @@ async def main(message: cl.Message):
     system = cl.user_session.get("system")
     
     try:
-        # Process through expert system - streaming handler will manage output
-        response = system.process_query(message.content)
+        # Process through expert system - Note the await
+        response = await system.process_query(message.content)
         
         # Only send additional message if there's an error
         if response:
