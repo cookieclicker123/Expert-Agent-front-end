@@ -29,37 +29,38 @@ async def start():
     # Initialize components
     system = init_system()
     ui = UIComponents()
-    sidebar = Sidebar()
     
-    # Welcome message with enhanced formatting
-    await ui.create_expandable_section(
-        title="Financial Expert System",
-        content=f"""Using {Config.model_config.groq_display_name} for analysis
-        
-**Capabilities:**
-• Market Analysis and Research
-• Options Trading Strategies
-• Portfolio Management
-• Real-time Data Analysis
-
-Type your query to begin!""",
-        expanded=True,
-        icon="🚀"
-    )
+    # Create welcome message
+    await cl.Message(
+        content="# 🚀 Financial Expert System\nPowered by Groq",
+        author="system"
+    ).send()
     
-    # Initialize sidebar with agents
+    # Initialize agents with tasks
     agents = {
         "Finance": "Real-time market data and analysis",
         "PDF": "Educational resources and documentation",
         "Web": "Current market research and news",
         "Meta": "Orchestrates other agents for comprehensive answers"
     }
-    await sidebar.initialize(agents)
     
-    # Store in session for access
+    # Create task list
+    tasks = []
+    for agent, desc in agents.items():
+        tasks.append(
+            cl.Task(
+                title=f"{agent} Agent",
+                status="ready",
+                description=desc
+            )
+        )
+    
+    # Send task list
+    await cl.TaskList(elements=tasks).send()
+    
+    # Store in session
     cl.user_session.set("system", system)
     cl.user_session.set("ui", ui)
-    cl.user_session.set("sidebar", sidebar)
     cl.user_session.set("agents", agents)
 
 @cl.on_message
@@ -67,33 +68,49 @@ async def main(message: cl.Message):
     """Process messages through expert system"""
     system = cl.user_session.get("system")
     ui = cl.user_session.get("ui")
-    sidebar = cl.user_session.get("sidebar")
     
     try:
-        # Show processing status
-        await ui.create_expandable_section(
-            title="Processing Query",
-            content=f"```{message.content}```",
-            expanded=False,
-            icon="⚡"
+        # First, show the workflow analysis
+        workflow = {
+            "query_type": "ANALYSIS",
+            "complexity": "ADVANCED",
+            "workflow": [
+                {"agent": "finance", "reason": "To provide current market data and analysis"},
+                {"agent": "web", "reason": "To gather latest market news and trends"},
+                {"agent": "pdf", "reason": "To provide documentation and context"}
+            ],
+            "reason": "This query requires comprehensive market analysis combining real-time data with contextual information."
+        }
+        
+        await ui.show_workflow_analysis(
+            workflow["query_type"],
+            workflow["complexity"],
+            workflow["workflow"],
+            workflow["reason"]
         )
+
+        # Then update the task list
+        tasks = [
+            {"agent": "Meta", "description": "Analyzing query", "status": "running"},
+            {"agent": "Finance", "description": "Gathering market data", "status": "ready"},
+            {"agent": "Web", "description": "Searching current news", "status": "ready"},
+            {"agent": "PDF", "description": "Finding relevant documentation", "status": "ready"}
+        ]
+        await ui.create_task_list(tasks)
         
         # Process through expert system
         response = await system.process_query(message.content)
         
-        # Only send additional message if there's an error
-        if response:
-            await ui.create_expandable_section(
-                title="Error",
-                content=response,
-                expanded=True,
-                icon="❌"
-            )
-            
+        # Update chat history
+        messages = cl.user_session.get("messages", [])
+        messages.append({
+            "role": "user",
+            "content": message.content
+        })
+        await ui.update_chat_history(messages)
+        
     except Exception as e:
-        await ui.create_expandable_section(
-            title="System Error",
-            content=f"```\n{str(e)}\n```",
-            expanded=True,
-            icon="⚠️"
-        )
+        await cl.Message(
+            content=f"Error: {str(e)}",
+            author="system"
+        ).send()
