@@ -1,6 +1,5 @@
 import sys
 from pathlib import Path
-import argparse
 
 # Add the parent directory to the path
 project_root = str(Path(__file__).parent.parent)
@@ -8,13 +7,11 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 
 import chainlit as cl
-from typing import Dict
 from utils.expert_system import ExpertSystem
 from utils.config import Config
 from expert_chat.handlers import ChainlitStreamHandler
-from expert_chat.ui.sidebar import Sidebar
 from expert_chat.ui.components import UIComponents
-from expert_chat.ui.elements import AnalysisElement, SynthesisElement, ContentFormatter
+
 
 # Add model display mapping
 model_display = {

@@ -1,5 +1,4 @@
 from typing import Dict, Optional
-import json
 
 class Workpad:
     def __init__(self):

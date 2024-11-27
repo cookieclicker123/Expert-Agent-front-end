@@ -1,5 +1,5 @@
 import chainlit as cl
-from typing import Dict, List, Optional
+from typing import List, Optional
 from dataclasses import dataclass
  
 @dataclass

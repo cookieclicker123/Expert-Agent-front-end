@@ -1,6 +1,5 @@
 from utils.config import Config
 from datetime import datetime, timedelta
-import logging
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry

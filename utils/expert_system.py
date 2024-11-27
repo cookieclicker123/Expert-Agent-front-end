@@ -3,7 +3,6 @@ from agents.pdf_agent import PDFAgent
 from agents.finance_agent import FinanceAgent
 from agents.web_agent import WebAgent
 import json
-from utils.config import Config
 from utils.callbacks import StreamingHandler
 
 class ExpertSystem:

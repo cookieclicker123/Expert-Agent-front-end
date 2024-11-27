@@ -4,8 +4,6 @@ from agents.base_agent import BaseAgent
 from agents.registry import AgentRegistry
 from utils.prompts import META_AGENT_PROMPT, SYNTHESIS_PROMPT
 from utils.workpad import Workpad
-from utils.config import Config
-import chainlit as cl
 
 class MetaAgent(BaseAgent):
     def __init__(self, callbacks=None):
@@ -151,6 +149,3 @@ Information from {agent}:
         except Exception as e:
             print(f"Workflow analysis failed: {str(e)}, falling back to web")
             return ["web"]
-
-
-#please give me a comprehensive strategy to trade options and search the web for hot stocks to trade them on

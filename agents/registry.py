@@ -1,4 +1,4 @@
-from typing import Dict, Type
+from typing import Dict
 from agents.base_agent import BaseAgent
 
 class AgentRegistry:

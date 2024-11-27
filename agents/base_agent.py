@@ -4,7 +4,6 @@ from langchain_groq import ChatGroq
 from langchain_anthropic import ChatAnthropic
 from langchain.schema.messages import HumanMessage
 from utils.config import Config
-import sys
 
 class BaseAgent(ABC):
     def __init__(self, name: str, callbacks=None):

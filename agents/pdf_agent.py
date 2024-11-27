@@ -1,6 +1,5 @@
 from agents.base_agent import BaseAgent
 from utils.prompts import PDF_AGENT_PROMPT
-from typing import List, Optional
 
 class PDFAgent(BaseAgent):
     def __init__(self, callbacks=None):

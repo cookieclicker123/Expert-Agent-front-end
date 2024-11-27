@@ -1,6 +1,5 @@
 import chainlit as cl
 from utils.callbacks import StreamingHandler
-import sys
 
 class ChainlitStreamHandler(StreamingHandler):
     def __init__(self):
