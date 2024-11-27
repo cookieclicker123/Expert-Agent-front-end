@@ -21,20 +21,28 @@ class ChainlitStreamHandler(StreamingHandler):
                     self.is_synthesizing = True
                     self.current_message = None
                     await cl.Message(
-                        content="🤖 Synthesizing final response...",
+                        content="# 📊 Synthesizing Final Analysis...",
                         author="system"
                     ).send()
                 else:
                     # Create workflow step if not exists
                     if not self.workflow_step:
                         self.workflow_step = await cl.Step(
-                            name="Workflow Analysis",
+                            name="🔄 Workflow Analysis",
                             show_input=False
                         ).__aenter__()
                     
-                    # Create agent step under workflow
+                    # Add specific emojis for each agent type
+                    agent_icons = {
+                        "web": "🌐",
+                        "finance": "📈",
+                        "pdf": "📚"
+                    }
+                    agent_icon = agent_icons.get(agent_name, "🤖")
+                    
+                    # Create agent step under workflow with specific emoji
                     self.current_step = await cl.Step(
-                        name=f"{agent_name.title()} Agent Processing",
+                        name=f"{agent_icon} {agent_name.title()} Agent Processing",
                         show_input=False,
                         parent_id=self.workflow_step.id
                     ).__aenter__()
@@ -62,7 +70,7 @@ class ChainlitStreamHandler(StreamingHandler):
         try:
             if self.is_synthesizing:
                 await cl.Message(
-                    content="✅ Synthesis complete",
+                    content="# ✨ Analysis Complete!",
                     author="system"
                 ).send()
                 self.is_synthesizing = False
