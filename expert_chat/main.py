@@ -104,7 +104,7 @@ async def main(message: cl.Message):
     
     try:
         # Create Query Analysis step (for initial plan)
-        async with cl.Step(name="Query Analysis", show_input=True) as step:
+        async with cl.Step(name="🔍 Query Analysis", show_input=True) as step:
             step.input = message.content
             # Process query to get initial plan
             workflow = await system.analyze_workflow(message.content)
