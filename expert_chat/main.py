@@ -16,6 +16,13 @@ from expert_chat.ui.sidebar import Sidebar
 from expert_chat.ui.components import UIComponents
 from expert_chat.ui.elements import AnalysisElement, SynthesisElement, ContentFormatter
 
+# Add model display mapping
+model_display = {
+    "anthropic": "Anthropic (Claude 3.5 Sonnet)",
+    "groq": "Groq Mixtral 8×7B",
+    "ollama": "Local (Ollama LLaMA 3.2)"
+}
+
 def select_model():
     """Prompt user to select model provider"""
     print("\n🤖 Available Models:")
@@ -53,15 +60,26 @@ async def start():
     system, provider = init_system()
     ui = UIComponents()
     
-    # Create welcome message with selected model
-    model_display = {
-        "anthropic": "Anthropic Claude 3.5 Sonnet",
-        "groq": "Groq Mixtral 8x7B",
-        "ollama": "Local LLaMA 3.2"
-    }
-    
+    # Create welcome message with selected model (using global model_display)
     await cl.Message(
         content=f"# 🚀 Financial Expert System\nPowered by {model_display[provider]}",
+        author="system"
+    ).send()
+    
+    # Show initial workflow template
+    await cl.Message(
+        content="""```python
+Type: ANALYSIS
+Complexity: ADVANCED
+
+Planned Steps:
+• Finance Agent → To provide current market data and analysis
+• Web Agent → To gather latest market news and trends
+• Pdf Agent → To provide documentation and context
+
+Strategy:
+This query requires comprehensive market analysis combining real-time data with contextual information.
+```""",
         author="system"
     ).send()
     
@@ -98,46 +116,16 @@ async def main(message: cl.Message):
     system = cl.user_session.get("system")
     
     try:
-        # Create the root step for this query
+        # Create Query Analysis step (for initial plan)
         async with cl.Step(name="Query Analysis", show_input=True) as step:
             step.input = message.content
+            # Process query to get initial plan
+            workflow = await system.analyze_workflow(message.content)
+            step.output = workflow
             
-            # First step: Analyze workflow
-            workflow = {
-                "query_type": "ANALYSIS",
-                "complexity": "ADVANCED",
-                "workflow": [
-                    {"agent": "finance", "reason": "To provide current market data and analysis"},
-                    {"agent": "web", "reason": "To gather latest market news and trends"},
-                    {"agent": "pdf", "reason": "To provide documentation and context"}
-                ],
-                "reason": "This query requires comprehensive market analysis combining real-time data with contextual information."
-            }
-            
-            # Show workflow analysis as a nested step
-            async with cl.Step(
-                name="🔍 Workflow Analysis",
-                show_input=False
-            ) as analysis_step:
-                analysis_step.output = f"""
-Type: {workflow['query_type']}
-Complexity: {workflow['complexity']}
-
-Planned Steps:
-{chr(10).join(f'• {step["agent"].title()} Agent → {step["reason"]}' for step in workflow['workflow'])}
-
-Strategy:
-{workflow['reason']}
-"""
-            
-            # Process through expert system with steps for each agent
-            async with cl.Step(name="🤖 Agent Processing", show_input=False) as processing_step:
-                response = await system.process_query(message.content)
-                processing_step.output = "Agents completed processing"
-            
-            # Final synthesis step
-            step.output = "Analysis complete"
-    
+        # Process through expert system (agents will create their own steps at root level)
+        response = await system.process_query(message.content)
+                
     except Exception as e:
         await cl.Message(
             content=f"Error: {str(e)}",

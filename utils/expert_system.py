@@ -52,3 +52,26 @@ class ExpertSystem:
                 "type": "system_error"
             }
         }, indent=2) 
+        
+    async def analyze_workflow(self, query: str) -> str:
+        """Analyze query and return formatted workflow plan"""
+        try:
+            # Get workflow from meta agent
+            workflow = self.meta_agent._analyze_workflow(query)
+            
+            # Format for display
+            workflow_str = """Type: ANALYSIS
+Complexity: ADVANCED
+
+Planned Steps:"""
+            
+            for step in workflow:
+                workflow_str += f"\n• {step['agent'].title()} Agent → {step['reason']}"
+            
+            workflow_str += "\n\nStrategy:\nThis query requires comprehensive analysis using specialized agents."
+            
+            return workflow_str
+            
+        except Exception as e:
+            print(f"Error in analyze_workflow: {str(e)}")
+            return f"Error analyzing workflow: {str(e)}" 

@@ -18,25 +18,23 @@ class MetaAgent(BaseAgent):
     async def process(self, query: str) -> str:
         """Process query through appropriate agents"""
         try:
-            # Get required agents and process them
             required_agents = self._analyze_query(query)
             self.workpad.clear()
             
-            # Process each agent
+            # Process each agent (steps created by handler)
             for agent_name in required_agents:
                 agent = self.registry.get_agent(agent_name)
                 if agent:
                     response = agent.process(query)
                     self.workpad.write(agent_name, response)
             
-            # Critical part we lost - Synthesis
+            # Synthesis to main chat
             content = self.workpad.get_all_content()
             synthesis_prompt = self.synthesis_prompt.format(
                 query=query,
                 agent_responses=json.dumps(content, indent=2)
             )
             
-            # Mark synthesis phase for UI
             if self.callbacks and hasattr(self.callbacks[0], 'on_llm_start'):
                 await self.callbacks[0].on_llm_start(
                     serialized={},
@@ -44,10 +42,8 @@ class MetaAgent(BaseAgent):
                     metadata={"agent_name": "meta"}
                 )
                 
-            # Generate final synthesized response
             response = self._invoke_llm(synthesis_prompt)
             
-            # Mark synthesis end
             if self.callbacks and hasattr(self.callbacks[0], 'on_llm_end'):
                 await self.callbacks[0].on_llm_end()
                 
