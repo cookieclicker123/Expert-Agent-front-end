@@ -9,6 +9,7 @@ class ChainlitStreamHandler(StreamingHandler):
         self.is_synthesizing = False
         self.text = ""
         self.current_step = None
+        self.workflow_step = None
         
     async def on_llm_start(self, *args, **kwargs):
         try:
@@ -24,10 +25,20 @@ class ChainlitStreamHandler(StreamingHandler):
                         author="system"
                     ).send()
                 else:
+                    # Create workflow step if not exists
+                    if not self.workflow_step:
+                        self.workflow_step = await cl.Step(
+                            name="Workflow Analysis",
+                            show_input=False
+                        ).__aenter__()
+                    
+                    # Create agent step under workflow
                     self.current_step = await cl.Step(
-                        name=f"{agent_name.title()} Agent",
-                        show_input=False
+                        name=f"{agent_name.title()} Agent Processing",
+                        show_input=False,
+                        parent_id=self.workflow_step.id
                     ).__aenter__()
+                    
         except Exception as e:
             print(f"Error in on_llm_start: {str(e)}")
     
@@ -52,14 +63,18 @@ class ChainlitStreamHandler(StreamingHandler):
             if self.is_synthesizing:
                 await cl.Message(
                     content="✅ Synthesis complete",
-                    author="system",
-                    parent_id="sidebar"
+                    author="system"
                 ).send()
                 self.is_synthesizing = False
             
             if self.current_step:
                 await self.current_step.__aexit__(None, None, None)
                 self.current_step = None
+            
+            # Close workflow step only after synthesis
+            if self.workflow_step and self.is_synthesizing:
+                await self.workflow_step.__aexit__(None, None, None)
+                self.workflow_step = None
             
             self.text = ""
             

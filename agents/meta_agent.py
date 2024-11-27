@@ -21,12 +21,24 @@ class MetaAgent(BaseAgent):
             required_agents = self._analyze_query(query)
             self.workpad.clear()
             
-            # Process each agent (steps created by handler)
+            # Process each agent with proper metadata
             for agent_name in required_agents:
                 agent = self.registry.get_agent(agent_name)
                 if agent:
+                    # Trigger agent start with metadata
+                    if self.callbacks and hasattr(self.callbacks[0], 'on_llm_start'):
+                        await self.callbacks[0].on_llm_start(
+                            serialized={},
+                            prompts=[query],
+                            metadata={"agent_name": agent_name}
+                        )
+                    
                     response = agent.process(query)
                     self.workpad.write(agent_name, response)
+                    
+                    # Trigger agent end
+                    if self.callbacks and hasattr(self.callbacks[0], 'on_llm_end'):
+                        await self.callbacks[0].on_llm_end()
             
             # Synthesis to main chat
             content = self.workpad.get_all_content()
@@ -35,6 +47,7 @@ class MetaAgent(BaseAgent):
                 agent_responses=json.dumps(content, indent=2)
             )
             
+            # Trigger synthesis
             if self.callbacks and hasattr(self.callbacks[0], 'on_llm_start'):
                 await self.callbacks[0].on_llm_start(
                     serialized={},
