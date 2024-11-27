@@ -60,25 +60,50 @@ async def start():
     system, provider = init_system()
     ui = UIComponents()
     
-    # Create welcome message with selected model (using global model_display)
+    # Create welcome message with selected model
     await cl.Message(
-        content=f"# 🚀 Financial Expert System\nPowered by {model_display[provider]}",
+        content=f"""# 🚀 Financial Expert System
+## Powered by {model_display[provider]}
+
+Welcome to your AI-powered financial analysis assistant! This system combines multiple specialized agents to provide comprehensive financial insights and analysis.
+
+### 🤖 Available Capabilities:
+• 📈 Real-time Market Analysis
+• 📊 Options Trading Strategies
+• 🔍 Market Research & News
+• 📚 Educational Resources
+
+### 💡 Example Queries:
+• "Analyze current market trends for tech stocks"
+• "Explain options trading strategies for beginners"
+• "What are the most volatile stocks this week?"
+• "Help me understand put options with examples"
+
+Let's begin! How can I assist you today?""",
         author="system"
     ).send()
     
-    # Show initial workflow template
+    # Show initial workflow template with enhanced formatting
     await cl.Message(
         content="""```python
-Type: ANALYSIS
-Complexity: ADVANCED
+# 🎯 System Architecture
 
-Planned Steps:
-• Finance Agent → To provide current market data and analysis
-• Web Agent → To gather latest market news and trends
-• Pdf Agent → To provide documentation and context
+Type: ADVANCED FINANCIAL ANALYSIS
+Complexity: MULTI-AGENT SYSTEM
 
-Strategy:
-This query requires comprehensive market analysis combining real-time data with contextual information.
+🔄 Core Agents:
+• 📈 Finance Agent → Real-time market data and technical analysis
+• 🌐 Web Agent → Latest market news, trends, and sentiment
+• 📚 PDF Agent → Documentation, guides, and educational context
+
+🧠 Processing Strategy:
+1. Query Analysis & Planning
+2. Multi-Agent Information Gathering
+3. Cross-Reference & Validation
+4. Synthesis & Recommendation
+
+This system combines real-time data, market research, and educational resources 
+to provide comprehensive financial insights and actionable recommendations.
 ```""",
         author="system"
     ).send()
