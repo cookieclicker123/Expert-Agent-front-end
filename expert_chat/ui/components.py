@@ -1,7 +1,7 @@
 import chainlit as cl
 from typing import Dict, List, Optional
 from dataclasses import dataclass
-
+ 
 @dataclass
 class ProcessStep:
     name: str
@@ -61,46 +61,25 @@ class UIComponents:
         ).send()
 
     @staticmethod
-    async def update_sidebar_agents(agents: Dict[str, str], active_agent: Optional[str] = None) -> None:
-        """Updates sidebar using Chainlit's native elements"""
-        sidebar_elements = []
-        
-        for name, description in agents.items():
-            status = "running" if name == active_agent else "ready"
-            element = cl.Text(
-                name=name,
-                content=description,
-                display="inline",
-                size="small"
-            )
-            sidebar_elements.append(element)
-        
-        await cl.Message(elements=sidebar_elements).send()
-
-    @staticmethod
-    async def show_synthesis_header() -> None:
-        """Shows synthesis phase header"""
-        await cl.Message(
-            content="🤖 **Synthesizing Response**\n\n---",
-            parent_id="synthesis"
-        ).send()
-
-    @staticmethod
     async def show_workflow_analysis(
         query_type: str,
         complexity: str,
         workflow: List[dict],
         reason: str
     ) -> None:
-        """Display workflow analysis using Chainlit's native elements"""
-        # Create the workflow text
-        workflow_text = f"""QUERY_TYPE: {query_type}
-COMPLEXITY: {complexity}
+        """Display workflow analysis with enhanced formatting"""
+        # Create the workflow text with better formatting
+        workflow_text = f"""# 🔍 Workflow Analysis
 
-WORKFLOW:
-{chr(10).join(f'• {step["agent"]} -> {step["reason"]}' for step in workflow)}
+## Query Details
+🎯 Type: `{query_type}`
+📊 Complexity: `{complexity}`
 
-REASON: {reason}"""
+## 🔄 Planned Steps
+{chr(10).join(f'• 🤖 {step["agent"].title()} Agent → {step["reason"]}' for step in workflow)}
+
+## 💡 Strategy
+{reason}"""
         
         # Send as a message with code block
         await cl.Message(
@@ -110,12 +89,16 @@ REASON: {reason}"""
 
     @staticmethod
     async def create_task_list(tasks: List[dict]) -> None:
-        """Create task list using Chainlit's native TaskList"""
-        task_elements = []
+        """Create task list with enhanced headers"""
+        await cl.Message(
+            content="# 📋 Task Pipeline",
+            author="system"
+        ).send()
         
+        task_elements = []
         for task in tasks:
             element = cl.Task(
-                title=task["agent"],
+                title=f"🤖 {task['agent']} Agent",
                 status=task["status"],
                 description=task["description"]
             )
@@ -124,13 +107,34 @@ REASON: {reason}"""
         await cl.TaskList(elements=task_elements).send()
 
     @staticmethod
+    async def show_source_evaluation(content: str) -> None:
+        """Display source evaluation with enhanced header"""
+        await cl.Message(
+            content=f"""# 📚 Source Evaluation & Analysis
+            
+{content}""",
+            author="system"
+        ).send()
+
+    @staticmethod
+    async def show_synthesis_header() -> None:
+        """Shows enhanced synthesis phase header"""
+        await cl.Message(
+            content="""# 🧠 Final Synthesis & Strategy
+            
+Synthesizing comprehensive analysis and recommendations...""",
+            author="system"
+        ).send()
+
+    @staticmethod
     async def update_chat_history(messages: List[dict]) -> None:
-        """Update right sidebar chat history"""
-        content = "### Chat History\n\n"
+        """Update chat history with better formatting"""
+        content = "# 📝 Chat History\n\n"
         for msg in messages:
-            content += f"**{msg['role']}**: {msg['content'][:50]}...\n\n"
+            role_icon = "👤" if msg['role'] == "user" else "🤖"
+            content += f"**{role_icon} {msg['role'].title()}**: {msg['content'][:50]}...\n\n"
         
         await cl.Message(
             content=content,
-            parent_id="chat_history"
+            author="system"
         ).send() 

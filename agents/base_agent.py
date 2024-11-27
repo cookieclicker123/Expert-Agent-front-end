@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from langchain_ollama import OllamaLLM
 from langchain_groq import ChatGroq
+from langchain_anthropic import ChatAnthropic
 from langchain.schema.messages import HumanMessage
 from utils.config import Config
 import sys
@@ -12,7 +13,14 @@ class BaseAgent(ABC):
         self.llm = self._initialize_llm()
         
     def _initialize_llm(self):
-        if Config.model_config.provider == "groq":
+        if Config.model_config.provider == "anthropic":
+            return ChatAnthropic(
+                api_key=Config.model_config.anthropic_api_key,
+                model_name=Config.model_config.anthropic_model_name,
+                callbacks=self.callbacks,
+                streaming=True
+            )
+        elif Config.model_config.provider == "groq":
             return ChatGroq(
                 api_key=Config.model_config.groq_api_key,
                 model_name=Config.model_config.groq_model_name,
@@ -30,7 +38,7 @@ class BaseAgent(ABC):
     def _invoke_llm(self, prompt: str) -> str:
         """Invoke LLM with consistent callbacks"""
         try:
-            if Config.model_config.provider == "groq":
+            if Config.model_config.provider in ["groq", "anthropic"]:
                 response = self.llm.invoke(
                     [HumanMessage(content=prompt)]
                 )

@@ -13,10 +13,14 @@ class ModelConfig:
     provider: str = "ollama"
 
     groq_api_key: str = os.getenv("GROQ_API_KEY")
-    groq_model_name: str = "llama-3.2-90b-text-preview"
+    groq_model_name: str = "mixtral-8x7b-32768"
+
+    anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY")
+    anthropic_model_name: str = "claude-3-5-sonnet-20241022"
 
     local_display_name: str = "Local (Ollama LLaMA 3.2)"
-    groq_display_name: str = "Groq (LLaMA 3.2 90B)"
+    groq_display_name: str = "Groq (Mixtral 8x7B)"
+    anthropic_display_name: str = "Anthropic (Claude 3.5 Sonnet)"
 
 @dataclass
 class APIConfig:

@@ -1,5 +1,6 @@
 import chainlit as cl
 from utils.callbacks import StreamingHandler
+import sys
 
 class ChainlitStreamHandler(StreamingHandler):
     """Extends StreamingHandler to stream tokens to Chainlit UI"""
@@ -11,7 +12,6 @@ class ChainlitStreamHandler(StreamingHandler):
         
     async def on_llm_start(self, agent_name: str = None, metadata: dict = None, *args, **kwargs):
         """Display agent activation in sidebar"""
-        print(f"DEBUG: on_llm_start called with agent_name={agent_name}, metadata={metadata}, args={args}, kwargs={kwargs}")
         try:
             # Get agent name from metadata if not directly provided
             agent_name = agent_name or (metadata or {}).get("agent_name")
@@ -36,7 +36,6 @@ class ChainlitStreamHandler(StreamingHandler):
     
     async def on_llm_new_token(self, token: str, **kwargs):
         """Stream tokens to main chat"""
-        print(f"DEBUG: on_llm_new_token called with token length={len(token)}, kwargs={kwargs}")
         try:
             # Initialize message if needed
             if self.current_message is None:
@@ -54,7 +53,6 @@ class ChainlitStreamHandler(StreamingHandler):
         
     async def on_llm_end(self, *args, **kwargs):
         """Clean up after streaming"""
-        print(f"DEBUG: on_llm_end called with args={args}, kwargs={kwargs}")
         try:
             if self.is_synthesizing:
                 await cl.Message(

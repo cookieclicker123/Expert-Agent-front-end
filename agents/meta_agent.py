@@ -5,6 +5,7 @@ from agents.registry import AgentRegistry
 from utils.prompts import META_AGENT_PROMPT, SYNTHESIS_PROMPT
 from utils.workpad import Workpad
 from utils.config import Config
+import chainlit as cl
 
 class MetaAgent(BaseAgent):
     def __init__(self, callbacks=None):
@@ -17,38 +18,33 @@ class MetaAgent(BaseAgent):
     async def process(self, query: str) -> str:
         """Process query through appropriate agents"""
         try:
-            print("\nAnalyzing workflow...")
+            # Get required agents and process them
             required_agents = self._analyze_query(query)
-            
-            print("\nGathering information...")
             self.workpad.clear()
             
             # Process each agent
             for agent_name in required_agents:
                 agent = self.registry.get_agent(agent_name)
                 if agent:
-                    print(f"\nProcessing {agent_name} agent...")
                     response = agent.process(query)
-                    print(f"Got response from {agent_name}: {response[:100]}...")
                     self.workpad.write(agent_name, response)
             
-            # Synthesize once
-            print("\nSynthesizing response...")
+            # Critical part we lost - Synthesis
             content = self.workpad.get_all_content()
-            
-            # Add separator
-            print("\n" + "-" * 100)
-            
-            # Mark synthesis phase
-            if self.callbacks and hasattr(self.callbacks[0], 'on_llm_start'):
-                await self.callbacks[0].on_llm_start(agent_name="meta")
-            
-            # Generate final response
             synthesis_prompt = self.synthesis_prompt.format(
                 query=query,
                 agent_responses=json.dumps(content, indent=2)
             )
             
+            # Mark synthesis phase for UI
+            if self.callbacks and hasattr(self.callbacks[0], 'on_llm_start'):
+                await self.callbacks[0].on_llm_start(
+                    serialized={},
+                    prompts=[synthesis_prompt],
+                    metadata={"agent_name": "meta"}
+                )
+                
+            # Generate final synthesized response
             response = self._invoke_llm(synthesis_prompt)
             
             # Mark synthesis end
@@ -56,7 +52,7 @@ class MetaAgent(BaseAgent):
                 await self.callbacks[0].on_llm_end()
                 
             return response
-            
+                
         except Exception as e:
             print(f"Error in workflow: {str(e)}")
             return str(e)

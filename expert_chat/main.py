@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import argparse
 
 # Add the parent directory to the path
 project_root = str(Path(__file__).parent.parent)
@@ -15,24 +16,52 @@ from expert_chat.ui.sidebar import Sidebar
 from expert_chat.ui.components import UIComponents
 from expert_chat.ui.elements import AnalysisElement, SynthesisElement, ContentFormatter
 
-# Initialize system with Groq for Chainlit interface
+def select_model():
+    """Prompt user to select model provider"""
+    print("\n🤖 Available Models:")
+    print("1. Anthropic (Claude 3.5 Sonnet)")
+    print("2. Groq (Mixtral 8x7B)")
+    print("3. Local (Ollama LLaMA 3.2)")
+    
+    while True:
+        choice = input("\nSelect model (1-3): ").strip()
+        if choice == "1":
+            return "anthropic", Config.model_config.anthropic_model_name
+        elif choice == "2":
+            return "groq", Config.model_config.groq_model_name
+        elif choice == "3":
+            return "ollama", Config.model_config.model_name
+        else:
+            print("Invalid choice. Please select 1-3.")
+
 def init_system():
-    """Initialize the expert system with Groq configuration"""
-    Config.model_config.provider = "groq"
-    Config.model_config.model_name = Config.model_config.groq_model_name
+    """Initialize the expert system with selected model configuration"""
+    provider, model_name = select_model()
+    
+    Config.model_config.provider = provider
+    Config.model_config.model_name = model_name
+    
     streaming_handler = ChainlitStreamHandler()
-    return ExpertSystem(callbacks=[streaming_handler])
+    system = ExpertSystem(callbacks=[streaming_handler])
+    
+    return system, provider
 
 @cl.on_chat_start
 async def start():
     """Initialize chat session"""
-    # Initialize components
-    system = init_system()
+    # Initialize components with selected model
+    system, provider = init_system()
     ui = UIComponents()
     
-    # Create welcome message
+    # Create welcome message with selected model
+    model_display = {
+        "anthropic": "Anthropic Claude 3.5 Sonnet",
+        "groq": "Groq Mixtral 8x7B",
+        "ollama": "Local LLaMA 3.2"
+    }
+    
     await cl.Message(
-        content="# 🚀 Financial Expert System\nPowered by Groq",
+        content=f"# 🚀 Financial Expert System\nPowered by {model_display[provider]}",
         author="system"
     ).send()
     
@@ -67,48 +96,48 @@ async def start():
 async def main(message: cl.Message):
     """Process messages through expert system"""
     system = cl.user_session.get("system")
-    ui = cl.user_session.get("ui")
     
     try:
-        # First, show the workflow analysis
-        workflow = {
-            "query_type": "ANALYSIS",
-            "complexity": "ADVANCED",
-            "workflow": [
-                {"agent": "finance", "reason": "To provide current market data and analysis"},
-                {"agent": "web", "reason": "To gather latest market news and trends"},
-                {"agent": "pdf", "reason": "To provide documentation and context"}
-            ],
-            "reason": "This query requires comprehensive market analysis combining real-time data with contextual information."
-        }
-        
-        await ui.show_workflow_analysis(
-            workflow["query_type"],
-            workflow["complexity"],
-            workflow["workflow"],
-            workflow["reason"]
-        )
+        # Create the root step for this query
+        async with cl.Step(name="Query Analysis", show_input=True) as step:
+            step.input = message.content
+            
+            # First step: Analyze workflow
+            workflow = {
+                "query_type": "ANALYSIS",
+                "complexity": "ADVANCED",
+                "workflow": [
+                    {"agent": "finance", "reason": "To provide current market data and analysis"},
+                    {"agent": "web", "reason": "To gather latest market news and trends"},
+                    {"agent": "pdf", "reason": "To provide documentation and context"}
+                ],
+                "reason": "This query requires comprehensive market analysis combining real-time data with contextual information."
+            }
+            
+            # Show workflow analysis as a nested step
+            async with cl.Step(
+                name="🔍 Workflow Analysis",
+                show_input=False
+            ) as analysis_step:
+                analysis_step.output = f"""
+Type: {workflow['query_type']}
+Complexity: {workflow['complexity']}
 
-        # Then update the task list
-        tasks = [
-            {"agent": "Meta", "description": "Analyzing query", "status": "running"},
-            {"agent": "Finance", "description": "Gathering market data", "status": "ready"},
-            {"agent": "Web", "description": "Searching current news", "status": "ready"},
-            {"agent": "PDF", "description": "Finding relevant documentation", "status": "ready"}
-        ]
-        await ui.create_task_list(tasks)
-        
-        # Process through expert system
-        response = await system.process_query(message.content)
-        
-        # Update chat history
-        messages = cl.user_session.get("messages", [])
-        messages.append({
-            "role": "user",
-            "content": message.content
-        })
-        await ui.update_chat_history(messages)
-        
+Planned Steps:
+{chr(10).join(f'• {step["agent"].title()} Agent → {step["reason"]}' for step in workflow['workflow'])}
+
+Strategy:
+{workflow['reason']}
+"""
+            
+            # Process through expert system with steps for each agent
+            async with cl.Step(name="🤖 Agent Processing", show_input=False) as processing_step:
+                response = await system.process_query(message.content)
+                processing_step.output = "Agents completed processing"
+            
+            # Final synthesis step
+            step.output = "Analysis complete"
+    
     except Exception as e:
         await cl.Message(
             content=f"Error: {str(e)}",
