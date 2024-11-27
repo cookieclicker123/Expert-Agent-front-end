@@ -69,9 +69,15 @@ class ChainlitStreamHandler(StreamingHandler):
     async def on_llm_end(self, *args, **kwargs):
         try:
             if self.is_synthesizing:
+                if self.current_message:
+                    await self.current_message.update()  # Ensure final message is complete
+                
+                # Send completion message without loading indicator
                 await cl.Message(
                     content="# ✨ Analysis Complete!",
-                    author="system"
+                    author="system",
+                    end_stream=True,
+                    language="markdown"  # Add markdown formatting
                 ).send()
                 self.is_synthesizing = False
             
