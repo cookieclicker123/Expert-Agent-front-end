@@ -93,32 +93,9 @@ to provide comprehensive financial insights and actionable recommendations.
         author="system"
     ).send()
     
-    # Initialize agents with tasks
-    agents = {
-        "Finance": "Real-time market data and analysis",
-        "PDF": "Educational resources and documentation",
-        "Web": "Current market research and news",
-        "Meta": "Orchestrates other agents for comprehensive answers"
-    }
-    
-    # Create task list
-    tasks = []
-    for agent, desc in agents.items():
-        tasks.append(
-            cl.Task(
-                title=f"{agent} Agent",
-                status="ready",
-                description=desc
-            )
-        )
-    
-    # Send task list
-    await cl.TaskList(elements=tasks).send()
-    
     # Store in session
     cl.user_session.set("system", system)
     cl.user_session.set("ui", ui)
-    cl.user_session.set("agents", agents)
 
 @cl.on_message
 async def main(message: cl.Message):
