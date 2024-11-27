@@ -23,28 +23,13 @@ model_display = {
     "ollama": "Local (Ollama LLaMA 3.2)"
 }
 
-def select_model():
-    """Prompt user to select model provider"""
-    print("\n🤖 Available Models:")
-    print("1. Anthropic (Claude 3.5 Sonnet)")
-    print("2. Groq (Mixtral 8x7B)")
-    print("3. Local (Ollama LLaMA 3.2)")
-    
-    while True:
-        choice = input("\nSelect model (1-3): ").strip()
-        if choice == "1":
-            return "anthropic", Config.model_config.anthropic_model_name
-        elif choice == "2":
-            return "groq", Config.model_config.groq_model_name
-        elif choice == "3":
-            return "ollama", Config.model_config.model_name
-        else:
-            print("Invalid choice. Please select 1-3.")
-
 def init_system():
-    """Initialize the expert system with selected model configuration"""
-    provider, model_name = select_model()
+    """Initialize the expert system with Groq configuration"""
+    # Default to Groq
+    provider = "groq"
+    model_name = Config.model_config.groq_model_name
     
+    # Set configuration
     Config.model_config.provider = provider
     Config.model_config.model_name = model_name
     
