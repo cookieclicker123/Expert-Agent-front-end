@@ -25,8 +25,8 @@ model_display = {
 def init_system():
     """Initialize the expert system with Groq configuration"""
     # Default to Groq
-    provider = "groq"
-    model_name = Config.model_config.groq_model_name
+    provider = "anthropic"
+    model_name = Config.model_config.anthropic_model_name
     
     # Set configuration
     Config.model_config.provider = provider

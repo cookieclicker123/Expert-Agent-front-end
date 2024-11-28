@@ -1,39 +1,5 @@
 from langchain.prompts import PromptTemplate
 
-SYMBOL_EXTRACTION_PROMPT = PromptTemplate(
-    input_variables=["query", "potential_symbols"],
-    template="""You are an expert stock market analyst. Identify and standardize stock ticker symbols from the query.
-
-Query: {query}
-Potential Symbols: {potential_symbols}
-
-CRITICAL RULES:
-1. ALWAYS output symbols in parentheses format: (MSFT)
-2. Convert ANY valid ticker mention to this format:
-   - Plain text: MSFT -> (MSFT)
-   - Lowercase: msft -> (MSFT)
-   - With/without brackets: [MSFT] -> (MSFT)
-   - Already correct: (MSFT) -> (MSFT)
-
-Examples:
-Query: "How is Microsoft stock MSFT doing?"
-VALID_SYMBOLS: (MSFT)
-
-Query: "Compare msft and aapl performance"
-VALID_SYMBOLS: (MSFT), (AAPL)
-
-Query: "Analysis of (GOOGL) and [AMZN]"
-VALID_SYMBOLS: (GOOGL), (AMZN)
-
-Format your response as:
-VALID_SYMBOLS: (symbol1), (symbol2), ...
-
-Remember:
-- ALWAYS use parentheses
-- ALWAYS uppercase symbols
-- ONLY include valid stock symbols
-- NO additional text or explanations"""
-)
 
 META_AGENT_PROMPT = PromptTemplate(
     input_variables=["query", "available_agents"],
@@ -43,7 +9,7 @@ META_AGENT_PROMPT = PromptTemplate(
 Query: {query}
 
 First, classify the query type and complexity:
-1. PRICE_CHECK: Simple price or market data request
+1. PRICE_CHECK: Simple price or market data request (ONLY for specific stock symbols)
 2. EDUCATIONAL: Detailed learning or how-to request
 3. ANALYSIS: Complex market analysis request
 4. INFORMATIONAL: Basic information request
@@ -56,10 +22,17 @@ Complexity Level:
 Then, select ONLY the necessary agents:
 - pdf -> For educational/background knowledge
 - web -> For current context/news
-- finance -> For market data/prices
+- finance -> ONLY for specific stock symbols like (AAPL) or TSLA
+
+CRITICAL RULES FOR AGENT SELECTION:
+1. ONLY use finance agent when query contains explicit stock symbols:
+   - Parentheses format: (AAPL), (MSFT), (GOOGL)
+   - Direct tickers: TSLA, NVDA, AMD
+2. General financial topics (rates, markets, trends) -> use web agent
+3. Market education/analysis without specific stocks -> use web + pdf
 
 Examples:
-"What's AAPL's price?" 
+"What's (AAPL)'s price?" 
 -> Type: PRICE_CHECK
 -> Complexity: BASIC
 -> Agents: finance only
@@ -69,10 +42,15 @@ Examples:
 -> Complexity: INTERMEDIATE
 -> Agents: pdf, web
 
-"Explain advanced derivatives strategies"
--> Type: EDUCATIONAL
--> Complexity: ADVANCED
--> Agents: pdf, web, finance
+"Current interest rates impact?"
+-> Type: ANALYSIS
+-> Complexity: INTERMEDIATE
+-> Agents: web only
+
+"Compare (NVDA) and TSLA performance"
+-> Type: PRICE_CHECK
+-> Complexity: INTERMEDIATE
+-> Agents: finance only
 
 Respond with:
 QUERY_TYPE: <type>
@@ -111,7 +89,7 @@ Provide a clear, natural language summary that directly answers the query while 
 CRITICAL RULES:
 1. ALWAYS cite sources using [source: URL] format
 2. Include DIRECT QUOTES when possible, with citations
-3. Specify dates for time-sensitive information
+3. Format ALL dates as 'Month DD, YYYY' (Example: November 28, 2024)
 4. Do not summarize without citing sources
 
 Keep the response clear and well-structured, but natural - no JSON or complex formatting.""")
@@ -126,14 +104,15 @@ Information: {agent_responses}
 CORE RULES:
 1. NEVER mention sources or analysis methods
 2. ALWAYS provide direct, actionable information
-3. SYNTHESIZE information from all agents into a cohesive narrative
-4. For multi-part questions, address each part clearly
-5. Preserve technical accuracy while maintaining readability
-6. DO NOT OMIT ANY INFORMATION
-7. AVOID repeating content between sections
-8. Each section must provide unique value
-9. When source material is limited, expand with relevant expertise
-10. Balance theoretical knowledge with practical examples
+3. Format ALL dates as 'Month DD, YYYY' (Example: November 28, 2024)
+4. SYNTHESIZE information from all agents into a cohesive narrative
+5. For multi-part questions, address each part clearly
+6. Preserve technical accuracy while maintaining readability
+7. DO NOT OMIT ANY INFORMATION
+8. AVOID repeating content between sections
+9. Each section must provide unique value
+10. When source material is limited, expand with relevant expertise
+11. Balance theoretical knowledge with practical examples
 
 For EDUCATIONAL QUERIES:
 1. Start with a clear, concise definition

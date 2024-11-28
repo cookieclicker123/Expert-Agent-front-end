@@ -87,3 +87,11 @@ class ChainlitStreamHandler(StreamingHandler):
         except Exception as e:
             print(f"Error in on_llm_end: {str(e)}")
             await self.reset_state()
+
+
+"""
+Tell me whether the sentiment in the market this week is bullish or bearish
+What are the current federal interest rates and their impact on markets?
+What is the current federal funds rate?
+Explain how the Federal Reserve's latest monetary policy decisions are affecting bond yields and stock market performance
+"""
