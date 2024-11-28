@@ -101,12 +101,18 @@ SOURCE EVALUATION:
 - Relevance: Rate how well sources match the query
 
 KEY FINDINGS:
-- Main Facts: List the most important discoveries
-- Market Sentiment: Overall market feeling/direction
-- Supporting Data: Key statistics or quotes
+- Main Facts: List the most important discoveries with citations [source: URL]
+- Market Sentiment: Overall market feeling/direction with supporting quotes
+- Supporting Data: Key statistics or quotes with direct citations
 
 FINAL RESPONSE:
-Provide a clear, natural language summary that directly answers the query while incorporating the above analysis.
+Provide a clear, natural language summary that directly answers the query while incorporating the above analysis. Include specific citations [source: URL] for key facts and data points.
+
+CRITICAL RULES:
+1. ALWAYS cite sources using [source: URL] format
+2. Include DIRECT QUOTES when possible, with citations
+3. Specify dates for time-sensitive information
+4. Do not summarize without citing sources
 
 Keep the response clear and well-structured, but natural - no JSON or complex formatting.""")
 

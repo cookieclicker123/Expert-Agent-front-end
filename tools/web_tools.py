@@ -14,69 +14,32 @@ class SerperTool:
         self._cache_expiry = {}
         self.cache_duration = timedelta(minutes=30)
         
-        # Trusted financial domains
-        self.trusted_domains = [
-            'reuters.com',
-            'bloomberg.com',
-            'finance.yahoo.com',
-            'marketwatch.com',
-            'fool.com',
-            'cnbc.com',
-            'wsj.com',
-            'ft.com',
-            'seekingalpha.com',
-            'investing.com'
-        ]
-        
     def search(self, query: str, num_results: int = 5) -> List[Dict]:
-        """Perform search with caching and result processing"""
+        """Perform unrestricted search for maximum information retrieval"""
         cache_key = f"{query}_{num_results}"
         
-        # Check cache
         if self._is_cache_valid(cache_key):
             return self._cache[cache_key]
             
-        headers = {
-            'X-API-KEY': self.api_key,
-            'Content-Type': 'application/json'
-        }
-        
-        payload = {
-            'q': query,
-            'num': num_results * 2  # Request extra to filter
-        }
-        
         try:
             response = requests.post(
-                self.base_url, 
-                headers=headers,
-                json=payload
+                self.base_url,
+                headers={'X-API-KEY': self.api_key, 'Content-Type': 'application/json'},
+                json={'q': query, 'num': num_results * 3}  # Increased for more diversity
             )
             response.raise_for_status()
             results = response.json().get('organic', [])
             
-            # Process and filter results
-            processed_results = []
-            for result in results:
-                # Check domain trustworthiness
-                if not any(domain in result['link'].lower() 
-                          for domain in self.trusted_domains):
-                    continue
-                    
-                processed_results.append({
-                    'title': result['title'],
-                    'snippet': result['snippet'],
-                    'link': result['link'],
-                    'date': self._extract_date(result)
-                })
-                
-                if len(processed_results) >= num_results:
-                    break
+            # Process all results without filtering
+            processed_results = [{
+                'title': result['title'],
+                'snippet': result['snippet'],
+                'link': result['link'],
+                'date': self._extract_date(result)
+            } for result in results[:num_results]]
             
-            # Cache results
             self._cache[cache_key] = processed_results
             self._cache_expiry[cache_key] = datetime.now() + self.cache_duration
-            
             return processed_results
             
         except Exception as e:
