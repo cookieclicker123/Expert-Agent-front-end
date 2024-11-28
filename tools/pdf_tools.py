@@ -36,15 +36,15 @@ class RAGSystem:
             allow_dangerous_deserialization=True
         )
         
-    def get_context(self, query: str, k: int = 12) -> str:
+    def get_context(self, query: str, k: int = 5) -> str:
         """Retrieve relevant context for a query"""
         try:
             retriever = self.vector_store.as_retriever(
                 search_type="mmr",
                 search_kwargs={
                     "k": k,
-                    "fetch_k": 20,
-                    "lambda_mult": 0.5
+                    "fetch_k": 15,
+                    "lambda_mult": 0.7
                 }
             )
             docs = retriever.invoke(query)
