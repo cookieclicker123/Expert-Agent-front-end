@@ -1,5 +1,7 @@
 import sys
 from pathlib import Path
+import asyncio
+import signal
 
 # Add the parent directory to the path
 project_root = str(Path(__file__).parent.parent)
@@ -34,6 +36,21 @@ def init_system():
     system = ExpertSystem(callbacks=[streaming_handler])
     
     return system, provider
+
+# Add cleanup handler
+async def cleanup(signal_event=None):
+    """Cleanup async resources"""
+    try:
+        system = cl.user_session.get("system")
+        if system and system.streaming_handler:
+            # Close any open steps
+            if system.streaming_handler.current_step:
+                await system.streaming_handler.current_step.__aexit__(None, None, None)
+            if system.streaming_handler.workflow_step:
+                await system.streaming_handler.workflow_step.__aexit__(None, None, None)
+            system.streaming_handler.reset_state()
+    except Exception as e:
+        print(f"Error during cleanup: {str(e)}")
 
 @cl.on_chat_start
 async def start():
@@ -100,6 +117,10 @@ async def main(message: cl.Message):
     system = cl.user_session.get("system")
     
     try:
+        # Reset handler state for new query
+        if isinstance(system.streaming_handler, ChainlitStreamHandler):
+            system.streaming_handler.reset_state()
+            
         # Create Query Analysis step (for initial plan)
         async with cl.Step(name="🔍 Query Analysis", show_input=True) as step:
             step.input = message.content
@@ -115,3 +136,15 @@ async def main(message: cl.Message):
             content=f"Error: {str(e)}",
             author="system"
         ).send()
+
+@cl.on_stop
+async def on_stop():
+    """Handle graceful shutdown"""
+    await cleanup()
+
+# Register signal handlers
+def signal_handler():
+    asyncio.create_task(cleanup())
+    
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
