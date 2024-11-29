@@ -22,6 +22,80 @@
 
 ## System Architecture
 
+```
+mermaid
+graph TD
+    User[User Query] --> MetaAgent[Meta Agent]
+    
+    subgraph AgentSelection[Agent Selection & Workflow]
+        MetaAgent --> Analysis[Query Analysis]
+        Analysis --> Selection[Agent Selection]
+        Selection --> Workpad[Workpad]
+        Memory[Conversation Memory] --> MetaAgent
+    end
+    
+    subgraph AgentProcessing[Agent Processing]
+        Workpad --> PDFAgent[PDF Agent]
+        Workpad --> WebAgent[Web Agent]
+        Workpad --> FinanceAgent[Finance Agent]
+        
+        PDFAgent --> FAISS[FAISS Index]
+        WebAgent --> Serper[Serper API]
+        FinanceAgent --> AlphaVantage[Alpha Vantage API]
+        FAISS --> AgentResponse1[Agent Response]
+        Serper --> AgentResponse2[Agent Response]
+        AlphaVantage --> AgentResponse3[Agent Response]
+    end
+    
+    subgraph ResponseSynthesis[Response Synthesis]
+        AgentResponse1 --> Workpad
+        AgentResponse2 --> Workpad
+        AgentResponse3 --> Workpad
+        
+        Workpad --> SynthesisCheck{Sufficient Info?}
+        SynthesisCheck -->|Yes| FinalSynthesis[Final Synthesis]
+        SynthesisCheck -->|No| MetaAgent
+        
+        FinalSynthesis --> Response[Final Response]
+        Memory --> FinalSynthesis
+    end
+    Response --> User
+    Response --> Memory
+    
+    style SynthesisCheck fill:#ff9900,stroke:#333,stroke-width:2px
+    style Workpad fill:#90EE90,stroke:#333,stroke-width:2px
+    style MetaAgent fill:#ADD8E6,stroke:#333,stroke-width:2px
+    style Memory fill:#FFB6C1,stroke:#333,stroke-width:2px
+```
+
+
+The system follows an enhanced workflow with memory persistence:
+
+1. **Query Processing with Context**
+   - User query is received by MetaAgent
+   - Conversation memory provides context from previous interactions
+   - MetaAgent analyzes query and selects appropriate agents
+   - Selected agents are registered in Workpad
+
+2. **Asynchronous Agent Execution**
+   - Each selected agent processes the query using specialized tools:
+     - PDF Agent: FAISS vector store for document analysis
+     - Web Agent: Serper API with citation requirements
+     - Finance Agent: Alpha Vantage API with ticker validation
+   - Agent responses are asynchronously written to Workpad
+
+3. **Context-Aware Synthesis Loop**
+   - MetaAgent checks if gathered information is sufficient
+   - Previous conversation context influences synthesis
+   - If YES: Proceeds to final synthesis with memory integration
+   - If NO: Returns to agent selection for additional information
+   - Process repeats until sufficient information is gathered
+
+4. **Enhanced Response Generation**
+   - Final synthesis combines all agent responses with conversation history
+   - Response is stored in memory for future context
+   - Coherent response delivered through Chainlit UI
+
 ## Overview
 
 This repository is part of a multi-phase project aimed at building a sophisticated, production-ready financial advisory system using multi-agent architecture. This phase introduces a robust front-end interface and several enhancements over the initial setup. For the basic setup instructions without the front end, please refer to [Part 1 of this project](https://github.com/cookieclicker123/Expert-Agent).
