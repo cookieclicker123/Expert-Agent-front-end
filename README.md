@@ -10,13 +10,12 @@
 ![System Overview](images/front-end.jpg "Multi-Agent System with Front End")
 
 ## Table of Contents
-- [Overview](#overview)
 - [System Architecture](#system-architecture)
+- [Overview](#overview)
 - [New Features](#new-features-in-part-2)
 - [Model Insights](#model-insights)
 - [Testing Insights](#testing-insights)
 - [Quick Start](#quick-start-tutorial)
-- [Configuration](#model-configuration)
 - [Common Issues](#common-issues)
 - [Future Directions](#future-directions)
 
