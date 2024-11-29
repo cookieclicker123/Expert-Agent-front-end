@@ -22,8 +22,7 @@
 
 ## System Architecture
 
-```
-mermaid
+```mermaid
 graph TD
     User[User Query] --> MetaAgent[Meta Agent]
     
@@ -42,6 +41,7 @@ graph TD
         PDFAgent --> FAISS[FAISS Index]
         WebAgent --> Serper[Serper API]
         FinanceAgent --> AlphaVantage[Alpha Vantage API]
+        
         FAISS --> AgentResponse1[Agent Response]
         Serper --> AgentResponse2[Agent Response]
         AlphaVantage --> AgentResponse3[Agent Response]
@@ -59,6 +59,7 @@ graph TD
         FinalSynthesis --> Response[Final Response]
         Memory --> FinalSynthesis
     end
+    
     Response --> User
     Response --> Memory
     
