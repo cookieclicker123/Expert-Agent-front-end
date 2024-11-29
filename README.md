@@ -99,7 +99,23 @@ The system follows an enhanced workflow with memory persistence:
 
 ## Overview
 
-This repository is part of a multi-phase project aimed at building a sophisticated, production-ready financial advisory system using multi-agent architecture. This phase introduces a robust front-end interface and several enhancements over the initial setup. For the basic setup instructions without the front end, please refer to [Part 1 of this project](https://github.com/cookieclicker123/Expert-Agent).
+This repository is part of a multi-phase project designed to democratize access to complex agent workflows. While it implements a sophisticated financial advisory system, its true purpose is educational: to provide engineers and developers with a production-ready framework for understanding and building multi-agent systems.
+
+### Educational Focus
+- Learn RAG implementation, agent orchestration, and LLM behavior in complex systems
+- Understand how different-sized models perform in agent-based architectures
+- Speed up AI development through practical, working examples
+- Test-driven development approach ensures reliable agent interactions
+
+### Framework Design
+- Highly generalizable architecture that extends beyond financial applications
+- Configurable components allow easy adaptation to different domains
+- Modular design enables swapping of prompts, agents, and knowledge bases
+- Production-ready patterns demonstrate real-world implementation
+
+This phase introduces a robust front-end interface and several enhancements over the initial setup, showcasing how sophisticated AI systems can be built and understood by engineers at any level. For the basic setup instructions without the front end, please refer to [Part 1 of this project](https://github.com/cookieclicker123/Expert-Agent).
+
+The system serves as both a working financial advisor and, more importantly, a template for understanding how to build, test, and deploy complex agent systems. By making these patterns accessible, we aim to accelerate AI development at the engineering level, moving beyond proof-of-concepts to production-ready implementations that can be adapted for various business needs.
 
 ## New Features in Part 2
 
@@ -158,29 +174,50 @@ As we move into Part 3 (Knowledge Base) and Part 4 (Embodied Agents with Compute
 
 1. **Setup**: Follow the setup instructions in [Part 1](https://github.com/cookieclicker123/Expert-Agent)
 
-2. **Run the Front End**:
-```bash
-python expert_chat/main.py
-```
-
-3. **Model Configuration**: 
+2. **Model Selection**: 
 - Models are defined in `utils/config.py`
-- Add environment variable for Anthropic API
 - Default model in `expert_chat/main.py` is Anthropic
 - Change provider and model_name variables for different models
 
-## Environment Setup
+In `expert_chat/main.py`:
+```python
+# Change these variables for different models
+provider = "anthropic"
+model_name = Config.model_config.anthropic_model_name
+```
+
+3. **Environment Setup**:
+
+For Anthropic Claude (Default):
+1. Sign up at [Anthropic Console](https://console.anthropic.com/)
+2. Navigate to API Keys section
+3. Add payment method ($5 minimum for testing)
+4. Generate and copy your API key
 
 ```bash
 # Add to your .env file
 ANTHROPIC_API_KEY=your_key_here
 ```
 
-## Model Selection
+Alternative Free Options:
+- Use Groq (faster, free tier available)
+- Use Local LLaMA model (completely free, lower performance)
 
-In `expert_chat/main.py`:
-```python
-# Change these variables for different models
-provider = "anthropic"  # Options: "local", "groq", "anthropic"
-model_name = "claude-3-sonnet-20240229"
+4. **Run the Front End**:
+```bash
+python expert_chat/main.py
 ```
+
+## Common Issues
+
+- **Model Selection**: Ensure the model is correctly selected in `utils/config.py` and `expert_chat/main.py`.
+- **Environment Setup**: Ensure the environment variables are correctly set in your `.env` file.
+- **Front End**: Ensure the front end is correctly installed and configured.
+
+## Future Directions
+
+As we move into Part 3 (Knowledge Base) and Part 4 (Embodied Agents with Computer Vision), these insights will guide us in:
+- Developing knowledge graph implementations
+- Creating computer vision-based automation
+- Optimizing model selection for specific tasks
+- Building more sophisticated agent architectures
