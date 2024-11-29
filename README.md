@@ -1,6 +1,26 @@
 # Multi-Agent Financial Advisor with Front End
 
-![Selected Image](./images/front-end.png)
+![GitHub](https://img.shields.io/github/license/cookieclicker123/Expert-Agent)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![LangChain](https://img.shields.io/badge/🦜_LangChain-Latest-green)
+![Chainlit](https://img.shields.io/badge/Chainlit-Latest-purple)
+![Groq](https://img.shields.io/badge/Groq-Latest-orange)
+![Claude](https://img.shields.io/badge/Claude-3.5_Sonnet-blue)
+
+![System Overview](images/front-end.jpg "Multi-Agent System with Front End")
+
+## Table of Contents
+- [Overview](#overview)
+- [System Architecture](#system-architecture)
+- [New Features](#new-features-in-part-2)
+- [Model Insights](#model-insights)
+- [Testing Insights](#testing-insights)
+- [Quick Start](#quick-start-tutorial)
+- [Configuration](#model-configuration)
+- [Common Issues](#common-issues)
+- [Future Directions](#future-directions)
+
+## System Architecture
 
 ## Overview
 
