@@ -11,17 +11,22 @@ class WebAgent(BaseAgent):
     def process(self, query: str) -> str:
         """Process web-based queries with search and analysis"""
         try:
-            # Get search results
+            # Get memory context
+            web_history = self._get_memory_context()
             search_results = self.search_tool.search(query)
             
-            # Format prompt with results
             prompt = self.prompt.format(
                 search_results=search_results,
-                query=query
+                query=query,
+                web_history=web_history
             )
             
-            # Use streaming invoke
-            return self._invoke_llm(prompt)
+            response = self._invoke_llm(prompt)
+            
+            # Save to memory
+            self._save_to_memory(query, response)
+            
+            return response
             
         except Exception as e:
             return f"Error in web agent: {str(e)}" 

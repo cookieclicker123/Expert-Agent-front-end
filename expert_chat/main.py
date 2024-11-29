@@ -13,6 +13,7 @@ from utils.expert_system import ExpertSystem
 from utils.config import Config
 from expert_chat.handlers import ChainlitStreamHandler
 from expert_chat.ui.components import UIComponents
+from utils.memory import AgentMemoryManager
 
 
 # Add model display mapping
@@ -42,6 +43,11 @@ async def cleanup(signal_event=None):
     """Cleanup async resources"""
     try:
         system = cl.user_session.get("system")
+        memory_manager = cl.user_session.get("memory_manager")
+        
+        if memory_manager:
+            memory_manager.clear_all()
+            
         if system and system.streaming_handler:
             # Close any open steps
             if system.streaming_handler.current_step:
@@ -55,9 +61,11 @@ async def cleanup(signal_event=None):
 @cl.on_chat_start
 async def start():
     """Initialize chat session"""
-    # Initialize components with selected model
     system, provider = init_system()
     ui = UIComponents()
+    
+    # Initialize memory manager
+    memory_manager = AgentMemoryManager()
     
     # Create welcome message with selected model
     await cl.Message(
@@ -110,6 +118,7 @@ to provide comprehensive financial insights and actionable recommendations.
     # Store in session
     cl.user_session.set("system", system)
     cl.user_session.set("ui", ui)
+    cl.user_session.set("memory_manager", memory_manager)
 
 @cl.on_message
 async def main(message: cl.Message):
@@ -129,7 +138,7 @@ async def main(message: cl.Message):
             step.output = workflow
             
         # Process through expert system (agents will create their own steps at root level)
-        response = await system.process_query(message.content)
+        await system.process_query(message.content)
                 
     except Exception as e:
         await cl.Message(

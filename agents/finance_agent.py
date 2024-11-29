@@ -14,15 +14,19 @@ class FinanceAgent(BaseAgent):
     def process(self, query: str) -> str:
         """Process financial queries with comprehensive analysis"""
         try:
+            finance_history = self._get_memory_context()
             symbols = self._extract_symbols(query)
             market_data = {symbol: self.finance_tool.get_stock_data(symbol) for symbol in symbols}
             
             prompt = self.prompt.format(
                 market_data=json.dumps(market_data, indent=2),
-                query=query
+                query=query,
+                finance_history=finance_history
             )
             
-            return self._invoke_llm(prompt)
+            response = self._invoke_llm(prompt)
+            self._save_to_memory(query, response)
+            return response
             
         except Exception as e:
             return self._format_error_response(str(e))

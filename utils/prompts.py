@@ -2,8 +2,13 @@ from langchain.prompts import PromptTemplate
 
 
 META_AGENT_PROMPT = PromptTemplate(
-    input_variables=["query", "available_agents"],
+    input_variables=["query", "available_agents", "meta_history"],
     template="""Analyze this query and determine the minimal necessary agents needed:
+
+Previous Analysis History:
+{meta_history}
+
+Available Agents:
 {available_agents}
 
 Query: {query}
@@ -63,8 +68,11 @@ REASON: Brief explanation of workflow strategy and required depth"""
 )
 
 WEB_AGENT_PROMPT = PromptTemplate(
-    input_variables=["search_results", "query"],
+    input_variables=["search_results", "query", "web_history"],
     template="""You are an expert web information analyst specializing in real-time financial and market data extraction and synthesis.
+
+Previous Interactions:
+{web_history}
 
 Search Results:
 {search_results}
@@ -95,11 +103,14 @@ CRITICAL RULES:
 Keep the response clear and well-structured, but natural - no JSON or complex formatting.""")
 
 SYNTHESIS_PROMPT = PromptTemplate(
-    input_variables=["query", "agent_responses"],
+    input_variables=["query", "agent_responses", "chat_history"],
     template="""Create a comprehensive response using the provided agent information.
 
-Query: {query}
-Information: {agent_responses}
+Previous Conversation Context:
+{chat_history}
+
+Current Query: {query}
+Agent Information: {agent_responses}
 
 CORE RULES:
 1. NEVER mention sources or analysis methods
@@ -179,8 +190,11 @@ Remember to:
 Create a focused response that thoroughly answers all aspects of the query while maintaining a clear narrative flow.""")
 
 PDF_AGENT_PROMPT = PromptTemplate(
-    input_variables=["context", "query"],
+    input_variables=["context", "query", "pdf_history"],
     template="""You are an expert document analyst and subject matter expert. Your goal is to provide comprehensive answers by combining document evidence with your deep expertise. You have access to both relevant documents and extensive knowledge in the field.
+
+Previous Document Analysis:
+{pdf_history}
 
 Context Documents:
 {context}
@@ -209,13 +223,22 @@ Remember:
 Keep your response clear, comprehensive, and focused on providing value to the user.""")
 
 FINANCE_AGENT_PROMPT = PromptTemplate(
-    input_variables=["market_data", "query"],
-    template="""You are an expert financial analyst specializing in stock market analysis and interpretation.
+    input_variables=["market_data", "query", "finance_history"],
+    template="""You are an expert financial analyst.
 
-Market Data:
+Previous Market Analysis:
+{finance_history}
+
+Current Market Data:
 {market_data}
 
 Query: {query}
+
+CRITICAL RULES:
+1. Reference previous analysis when relevant
+2. Highlight changes from previous assessments
+3. Format ALL dates as 'Month DD, YYYY'
+4. Maintain consistency with historical analysis
 
 Analyze the provided market data and structure your response as follows:
 

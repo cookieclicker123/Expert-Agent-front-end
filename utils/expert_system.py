@@ -4,6 +4,7 @@ from agents.finance_agent import FinanceAgent
 from agents.web_agent import WebAgent
 import json
 from utils.callbacks import StreamingHandler
+import chainlit as cl
 
 class ExpertSystem:
     def __init__(self, callbacks=None):
@@ -34,10 +35,15 @@ class ExpertSystem:
     async def process_query(self, query: str) -> str:
         """Process a query through the meta agent"""
         try:
-            print("\nProcessing query...\n")
-            response = await self.meta_agent.process(query)
-            print("\n")
-            return ""  # Return empty as streaming handles output
+            # Get memory manager from session within Chainlit context
+            memory_manager = cl.user_session.get("memory_manager")
+            if not memory_manager:
+                print("Warning: No memory manager found in session")
+            
+            # Process query but let streaming handle output
+            await self.meta_agent.process(query)
+            return ""  # Return empty string to let streaming handle display
+            
         except Exception as e:
             error_msg = str(e)
             print(f"Error in process_query: {error_msg}")
@@ -55,6 +61,11 @@ class ExpertSystem:
     async def analyze_workflow(self, query: str) -> str:
         """Analyze query and return formatted workflow plan"""
         try:
+            # Get memory manager from session within Chainlit context
+            memory_manager = cl.user_session.get("memory_manager")
+            if not memory_manager:
+                print("Warning: No memory manager found in session")
+            
             # Get workflow from meta agent
             workflow = self.meta_agent._analyze_workflow(query)
             

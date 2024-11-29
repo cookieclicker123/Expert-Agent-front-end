@@ -11,15 +11,23 @@ class PDFAgent(BaseAgent):
     def process(self, query: str) -> str:
         """Process PDF-related queries"""
         try:
-            # Get relevant context using the PDF tool
+            # Get memory context and relevant documents
+            pdf_history = self._get_memory_context()
             context = self._get_relevant_context(query)
             
-            # Format the prompt with the retrieved context
+            # Format the prompt with context and history
             prompt = self.prompt.format(
                 context=context,
-                query=query
+                query=query,
+                pdf_history=pdf_history
             )
-            return self._invoke_llm(prompt)
+            
+            # Get and save response
+            response = self._invoke_llm(prompt)
+            self._save_to_memory(query, response)
+            
+            return response
+            
         except Exception as e:
             return f"PDF processing error: {str(e)}"
             

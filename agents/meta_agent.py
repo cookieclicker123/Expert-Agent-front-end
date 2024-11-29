@@ -4,6 +4,7 @@ from agents.base_agent import BaseAgent
 from agents.registry import AgentRegistry
 from utils.prompts import META_AGENT_PROMPT, SYNTHESIS_PROMPT
 from utils.workpad import Workpad
+import chainlit as cl
 
 class MetaAgent(BaseAgent):
     def __init__(self, callbacks=None):
@@ -16,14 +17,18 @@ class MetaAgent(BaseAgent):
     async def process(self, query: str) -> str:
         """Process query through appropriate agents"""
         try:
+            # Get all relevant memories
+            memory_manager = cl.user_session.get("memory_manager")
+            meta_memory = memory_manager.get_memory("meta")
+            
             required_agents = self._analyze_query(query)
             self.workpad.clear()
             
-            # Process each agent with proper metadata
+            # Process each agent
             for agent_name in required_agents:
                 agent = self.registry.get_agent(agent_name)
                 if agent:
-                    # Trigger agent start with metadata
+                    # Manually trigger start callback
                     if self.callbacks and hasattr(self.callbacks[0], 'on_llm_start'):
                         await self.callbacks[0].on_llm_start(
                             serialized={},
@@ -34,31 +39,31 @@ class MetaAgent(BaseAgent):
                     response = agent.process(query)
                     self.workpad.write(agent_name, response)
                     
-                    # Trigger agent end
+                    # Manually trigger end callback
                     if self.callbacks and hasattr(self.callbacks[0], 'on_llm_end'):
                         await self.callbacks[0].on_llm_end()
             
-            # Synthesis to main chat
-            content = self.workpad.get_all_content()
-            synthesis_prompt = self.synthesis_prompt.format(
-                query=query,
-                agent_responses=json.dumps(content, indent=2)
-            )
-            
-            # Trigger synthesis
+            # Synthesis with manual callbacks
             if self.callbacks and hasattr(self.callbacks[0], 'on_llm_start'):
                 await self.callbacks[0].on_llm_start(
                     serialized={},
-                    prompts=[synthesis_prompt],
+                    prompts=[query],
                     metadata={"agent_name": "meta"}
                 )
-                
-            response = self._invoke_llm(synthesis_prompt)
             
+            # Synthesis with memory
+            synthesis_response = self._synthesize_with_memory(
+                query,
+                meta_memory.get("chat_history", "")
+            )
+            
+            # End callback for synthesis
             if self.callbacks and hasattr(self.callbacks[0], 'on_llm_end'):
                 await self.callbacks[0].on_llm_end()
-                
-            return response
+            
+            # Save to memory
+            memory_manager.save_context("meta", query, synthesis_response)
+            return synthesis_response
                 
         except Exception as e:
             print(f"Error in workflow: {str(e)}")
@@ -92,11 +97,12 @@ Information from {agent}:
             return f"Synthesis failed: {str(e)}"
         
     def _analyze_workflow(self, query: str) -> List[dict]:
-        """Build dynamic workflow based on query analysis"""
         try:
+            meta_memory = self._get_memory_context()
             analysis_prompt = self.prompt.format(
                 query=query,
-                available_agents=self.registry.list_agents()
+                available_agents=self.registry.list_agents(),
+                meta_history=meta_memory
             )
             
             response = self._invoke_llm(analysis_prompt)
@@ -149,3 +155,15 @@ Information from {agent}:
         except Exception as e:
             print(f"Workflow analysis failed: {str(e)}, falling back to web")
             return ["web"]
+
+    def _synthesize_with_memory(self, query: str, history: str) -> str:
+        """Synthesize response with conversation history"""
+        content = self.workpad.get_all_content()
+        
+        synthesis_prompt = self.synthesis_prompt.format(
+            query=query,
+            agent_responses=json.dumps(content, indent=2),
+            chat_history=history
+        )
+        
+        return self._invoke_llm(synthesis_prompt)
